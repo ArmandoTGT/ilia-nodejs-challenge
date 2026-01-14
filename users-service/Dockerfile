@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
@@ -7,8 +7,9 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build
+RUN npm run build \
+  && cp -r src/database/migrations dist/database/migrations
 
 EXPOSE 3002
 
-CMD ["npm", "start"]
+CMD ["node", "dist/server.js"]
