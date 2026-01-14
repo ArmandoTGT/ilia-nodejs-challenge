@@ -4,7 +4,7 @@ import { authMiddleware } from "./middlewares/auth.middleware.js";
 import { walletRoutes } from "./modules/wallet/wallet.routes.js";
 
 export async function buildApp() {
-  const app = Fastify();
+  const app = Fastify({ logger: true });
 
   await registerJwt(app);
 
