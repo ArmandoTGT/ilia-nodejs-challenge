@@ -12,7 +12,7 @@ export class UsersController {
   ) {
     const user = await this.service.createUser(request.body);
 
-    reply.code(201).send({
+    reply.code(200).send({
       id: user.id,
       first_name: user.firstName,
       last_name: user.lastName,
@@ -20,30 +20,75 @@ export class UsersController {
     });
   }
 
-  async login(
-    request: FastifyRequest<{ Body: LoginDTO }>,
-    reply: FastifyReply
-  ) {
-    const token = await this.service.login(request.body);
-    reply.send({ token });
+  async listUsers(_request: FastifyRequest, reply: FastifyReply) {
+    const users = await this.service.listUsers();
+
+    reply.send(
+      users.map((u) => ({
+        id: u.id,
+        first_name: u.firstName,
+        last_name: u.lastName,
+        email: u.email,
+      }))
+    );
   }
 
   async getUserById(
-    request: FastifyRequest<{ Params: { id: string } }>,
+    request: FastifyRequest,
     reply: FastifyReply
   ) {
-    const user = await this.service.getUserById(request.params.id);
-
-    if (!user) {
-      reply.code(404).send({ message: "User not found" });
-      return;
-    }
+    const { id } = request.params as { id: string };
+    const user = await this.service.getUserById(id);
 
     reply.send({
       id: user.id,
       first_name: user.firstName,
       last_name: user.lastName,
       email: user.email,
+    });
+  }
+
+  async updateUser(
+    request: FastifyRequest,
+    reply: FastifyReply
+  ) {
+    const { id } = request.params as { id: string };
+    const body = request.body as CreateUserDTO;
+
+    const user = await this.service.updateUser(id, body);
+
+    reply.send({
+      id: user.id,
+      first_name: user.firstName,
+      last_name: user.lastName,
+      email: user.email,
+    });
+  }
+
+  async deleteUser(
+    request: FastifyRequest,
+    reply: FastifyReply
+  ) {
+    const { id } = request.params as { id: string };
+    await this.service.deleteUser(id);
+    reply.code(200).send();
+  }
+
+  async login(
+    request: FastifyRequest,
+    reply: FastifyReply
+  ) {
+    const body = request.body as LoginDTO;
+    const { token, user } = await this.service.login( body );
+
+    reply.send({
+      user: {
+        id: user.id,
+        first_name: user.firstName,
+        last_name: user.lastName,
+        email: user.email,
+      },
+      access_token: token,
     });
   }
 }

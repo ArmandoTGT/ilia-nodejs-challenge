@@ -30,15 +30,7 @@ export class UsersRepository {
     if (result.rowCount === 0) return null;
 
     const row = result.rows[0];
-
-    return new User(
-      row.id,
-      row.first_name,
-      row.last_name,
-      row.email,
-      row.password_hash,
-      row.created_at
-    );
+    return this.mapRow(row);
   }
 
   async findById(id: string): Promise<User | null> {
@@ -49,8 +41,39 @@ export class UsersRepository {
 
     if (result.rowCount === 0) return null;
 
-    const row = result.rows[0];
+    return this.mapRow(result.rows[0]);
+  }
 
+  async findAll(): Promise<User[]> {
+    const result = await pool.query(`SELECT * FROM users ORDER BY created_at`);
+    return result.rows.map(this.mapRow);
+  }
+
+  async update(user: User): Promise<void> {
+    await pool.query(
+      `
+      UPDATE users
+      SET first_name = $1,
+          last_name = $2,
+          email = $3,
+          password_hash = $4
+      WHERE id = $5
+      `,
+      [
+        user.firstName,
+        user.lastName,
+        user.email,
+        user.passwordHash,
+        user.id,
+      ]
+    );
+  }
+
+  async deleteById(id: string): Promise<void> {
+    await pool.query(`DELETE FROM users WHERE id = $1`, [id]);
+  }
+
+  private mapRow(row: any): User {
     return new User(
       row.id,
       row.first_name,

@@ -15,7 +15,9 @@ export class WalletController {
   }
 
   async listTransactions(
-    request: FastifyRequest<{ Querystring: { type?: TransactionType; user_id?: string } }>,
+    request: FastifyRequest<{
+      Querystring: { type?: TransactionType; user_id?: string };
+    }>,
     reply: FastifyReply
   ) {
     const type = request.query.type;
@@ -24,7 +26,14 @@ export class WalletController {
       (request as any).user?.sub;
 
     const txs = await this.service.listTransactions(userId, type);
-    reply.send(txs);
+
+    reply.send(
+      txs.map((t) => ({
+        id: t.id,
+        type: t.type,
+        amount: t.amount,
+      }))
+    );
   }
 
   async getBalance(
